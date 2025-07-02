@@ -1,11 +1,14 @@
-#!/usr/bin/env node
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import {
-  CallRequestSchema,
-  ErrorCode,
-  ListToolsRequestSchema,
-  McpServer,
-} from "@modelcontextprotocol/sdk/types.js";
-import axios from "axios";
 
+const server = new Server(
+  {
+    name: "daath-mpc",
+    version: "1.0.0",
+  },
+  {
+    capabilities: {
+      resources: {},
+      tools: {},
+    },
+  }
+);
