@@ -16,7 +16,16 @@ const server = new Server(
   {
     capabilities: {
       resources: {},
-      tools: {},
+      tools: {
+        get_users: {
+          name: "get_users",
+          description: "Get a list of users",
+          inputSchema: {
+            type: "object",
+            properties: {},
+          },
+        },
+      },
     },
   }
 );
@@ -38,9 +47,15 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 
 server.setRequestHandler(CallToolRequestSchema, async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/users`);
+    const response = await axios.get(`${API_BASE_URL}/api/cats?limit=1`);
+    const cats = response.data;
     return {
-      users: response.data,
+      content: [
+        {
+          type: "text",
+          text: `🐱 **Gato Aleatório**:\n\n${JSON.stringify(cats[0], null, 2)}\n\n🖼️ Imagem: https://cataas.com/cat/${cats[0]._id}`,
+        }
+      ],
     };
   } catch (error) {
     console.error(error);
