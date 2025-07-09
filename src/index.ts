@@ -1,10 +1,16 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import axios from "axios";
+import {
+  CallToolRequestSchema,
+  ListToolsRequestSchema,
+} from "@modelcontextprotocol/sdk/types.js";
+
+const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:8000";
 
 const server = new Server(
   {
-    name: "daath-mpc",
+    name: "hello-mcp",
     version: "1.0.0",
   },
   {
@@ -15,68 +21,39 @@ const server = new Server(
   }
 );
 
-server.setRequestHandler(ListResourcesRequestSchema, async () => {
-  return {
-    resources: [
-      {
-        uri: "",
-        name: "All phrases",
-        description: "All phrases",
-        mimeType: "application/json",
-      },
-    ],
-  };
-});
-
-server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
-  const frases = await daathAPI.getAllPhrases();
-  return {
-    contents: [
-      {
-        uri: request.params.uri,
-        mimeType: "application/json",
-        text: JSON.stringify(frases),
-      },
-    ],
-  };
-});
-
-server.setRequestHandler(ListToolsRequestSchama, async () => {
+server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
       {
-        name: "search-contextual-phrase",
-        description: "Search for a phrase in the context of user prompt",
+        name: "get_users",
+        description: "Get a list of users",
         inputSchema: {
           type: "object",
-          properties: {
-            query: {
-              type: "string",
-              description: "The query to search for",
-            },
-          },
-          required: ["query"],
+          properties: {},
         },
       },
     ],
   };
 });
 
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  if (request.params.name === "search-contextual-phrase") {
-    const { query } = request.params.arguments;
-    const phrase = await daathAPI.searchContextualPhrase(query);
-
+server.setRequestHandler(CallToolRequestSchema, async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/users`);
     return {
-      content: [
-        {
-          type: "text",
-          text: `${phrase.text} - ${phrase.author}`,
-        },
-      ],
+      users: response.data,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      error: "Failed to fetch users",
     };
   }
 });
 
-const transport = new StdioServerTransport();
-server.connect(transport);
+async function main() {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.error("Servidor MCP iniciado!");
+}
+
+main().catch(console.error);
